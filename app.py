@@ -14,8 +14,9 @@ st.set_page_config(
 # --- Custom CSS for Café Theme ---
 st.markdown("""
 <style>
-    /* Import Google Fonts */
+    /* Import Google Fonts and FontAwesome */
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;500;600&display=swap');
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css');
     
     /* Root Variables */
     :root {
@@ -322,6 +323,19 @@ st.markdown("""
         font-size: 2.5rem;
         text-align: center;
         margin-bottom: 0.5rem;
+        color: var(--gold);
+    }
+
+    /* Icon Helper Class */
+    .icon-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .icon-text i {
+        color: var(--brown);
+        font-size: 1.1em;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -334,13 +348,24 @@ if "current_user" not in st.session_state:
 def get_status_badge(status):
     """Returns HTML for a styled status badge"""
     status_class = f"status-{status.lower().replace('_', '-')}"
-    return f'<span class="{status_class}">{status}</span>'
+    
+    # Map status to FontAwesome icons
+    icon_map = {
+        'PENDING': 'fa-hourglass-start',
+        'IN_PREP': 'fa-fire-burner',
+        'READY': 'fa-bell-concierge',
+        'SERVED': 'fa-check',
+        'CANCELLED': 'fa-xmark'
+    }
+    icon = icon_map.get(status, 'fa-circle')
+    
+    return f'<span class="{status_class}"><i class="fa-solid {icon}"></i> {status}</span>'
 
 def login():
     # Centered login with branding
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown('<div class="coffee-icon">☕</div>', unsafe_allow_html=True)
+        st.markdown('<div class="coffee-icon"><i class="fa-solid fa-mug-hot"></i></div>', unsafe_allow_html=True)
         st.markdown('<h1 class="main-title">CMOMS</h1>', unsafe_allow_html=True)
         st.markdown('<p class="tagline">Café Menu & Order Management System</p>', unsafe_allow_html=True)
         
@@ -353,7 +378,7 @@ def login():
             
             col_a, col_b, col_c = st.columns([1, 2, 1])
             with col_b:
-                submitted = st.form_submit_button("☕ Sign In", use_container_width=True)
+                submitted = st.form_submit_button("Sign In", use_container_width=True)
             
             if submitted:
                 user = services.authenticate_user(username, password)
@@ -371,39 +396,39 @@ def logout():
 # --- Main Views ---
 
 def view_dashboard():
-    st.markdown("## 📊 Dashboard")
+    st.markdown("## <i class='fa-solid fa-chart-line'></i> Dashboard", unsafe_allow_html=True)
     st.markdown("---")
     
     stats = services.get_dashboard_stats()
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("💰 Today's Sales", f"${stats['today_sales']:.2f}")
+        st.metric("Today's Sales", f"${stats['today_sales']:.2f}")
     with col2:
-        st.metric("🏆 Top Item Today", stats['top_item'] or "N/A")
+        st.metric("Top Item Today", stats['top_item'] or "N/A")
     with col3:
         # Count orders by getting all orders
         orders = services.get_orders()
         active_orders = len([o for o in orders if o.order_status in ['PENDING', 'IN_PREP', 'READY']])
-        st.metric("📋 Active Orders", active_orders)
+        st.metric("Active Orders", active_orders)
     
     st.markdown("---")
-    st.markdown("### 📈 Sales by Category")
+    st.markdown("### <i class='fa-solid fa-chart-pie'></i> Sales by Category", unsafe_allow_html=True)
     
     if stats['sales_by_category']:
         df = pd.DataFrame(stats['sales_by_category'], columns=['Category', 'Total Sales'])
         st.bar_chart(df.set_index('Category'), color="#5D4037")
     else:
-        st.info("☕ No sales data available yet. Start taking orders!")
+        st.info("No sales data available yet. Start taking orders!")
 
 def view_menu_management():
-    st.markdown("## 🍽️ Menu Management")
+    st.markdown("## <i class='fa-solid fa-utensils'></i> Menu Management", unsafe_allow_html=True)
     st.markdown("---")
     
-    tab1, tab2 = st.tabs(["📁 Categories", "☕ Menu Items"])
+    tab1, tab2 = st.tabs(["Categories", "Menu Items"])
     
     with tab1:
-        st.markdown("### Manage Categories")
+        st.markdown("### <i class='fa-solid fa-layer-group'></i> Manage Categories", unsafe_allow_html=True)
         
         col1, col2 = st.columns([1, 2])
         
@@ -412,10 +437,10 @@ def view_menu_management():
             with st.form("add_category"):
                 new_cat_name = st.text_input("Category Name", placeholder="e.g., Hot Beverages")
                 new_cat_order = st.number_input("Display Order", min_value=1, value=1)
-                if st.form_submit_button("➕ Add Category", use_container_width=True):
+                if st.form_submit_button("Add Category", use_container_width=True):
                     if new_cat_name:
                         services.create_category(new_cat_name, new_cat_order)
-                        st.success("✓ Category added successfully!")
+                        st.success("Category added successfully!")
                         st.rerun()
         
         with col2:
@@ -439,16 +464,16 @@ def view_menu_management():
                     )
                 with col_b:
                     st.markdown("<br>", unsafe_allow_html=True)
-                    if st.button("🗑️ Delete Category"):
+                    if st.button("Delete Category"):
                         services.delete_category(cat_to_delete.category_id)
                         st.warning("Category deleted")
                         st.rerun()
     
     with tab2:
-        st.markdown("### Manage Menu Items")
+        st.markdown("### <i class='fa-solid fa-mug-saucer'></i> Manage Menu Items", unsafe_allow_html=True)
         categories = services.get_all_categories()
         
-        with st.expander("➕ Add New Menu Item", expanded=False):
+        with st.expander("Add New Menu Item", expanded=False):
             with st.form("add_item"):
                 col1, col2 = st.columns(2)
                 with col1:
@@ -459,16 +484,16 @@ def view_menu_management():
                     item_price = st.number_input("Price ($)", min_value=0.01, format="%.2f", value=4.50)
                     item_active = st.checkbox("Active", value=True)
                 
-                if st.form_submit_button("➕ Create Item", use_container_width=True):
+                if st.form_submit_button("Create Item", use_container_width=True):
                     if item_name and selected_cat_name:
                         services.add_menu_item(cat_options[selected_cat_name], item_name, item_price, item_active)
-                        st.success("✓ Item created successfully!")
+                        st.success("Item created successfully!")
                         st.rerun()
 
         # Edit Item Section
         items_for_edit = services.get_menu_items(active_only=False)
         if items_for_edit:
-            with st.expander("✏️ Edit Menu Item", expanded=False):
+            with st.expander("Edit Menu Item", expanded=False):
                 with st.form("edit_item"):
                     item_to_edit = st.selectbox(
                         "Select Item to Edit",
@@ -491,7 +516,7 @@ def view_menu_management():
                         new_price = st.number_input("New Price ($)", min_value=0.01, format="%.2f", value=float(item_to_edit.price))
                         new_active = st.checkbox("Active", value=item_to_edit.is_active)
                     
-                    if st.form_submit_button("💾 Update Item", use_container_width=True):
+                    if st.form_submit_button("Update Item", use_container_width=True):
                         services.edit_menu_item(
                             item_to_edit.item_id,
                             cat_options_edit[new_category],
@@ -499,7 +524,7 @@ def view_menu_management():
                             new_price,
                             new_active
                         )
-                        st.success("✓ Item updated successfully!")
+                        st.success("Item updated successfully!")
                         st.rerun()
 
         st.markdown("#### Current Menu")
@@ -512,7 +537,7 @@ def view_menu_management():
                     "Category": i.category_name,
                     "Name": i.name,
                     "Price": f"${i.price:.2f}",
-                    "Status": "✓ Active" if i.is_active else "✗ Inactive"
+                    "Status": "Active" if i.is_active else "Inactive"
                 })
             st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
             
@@ -526,19 +551,19 @@ def view_menu_management():
                 )
             with col2:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🔄 Toggle Active Status"):
+                if st.button("Toggle Active Status"):
                     services.toggle_item_active(item_to_toggle.item_id)
                     st.rerun()
 
 def view_orders():
-    st.markdown("## 📝 Orders")
+    st.markdown("## <i class='fa-solid fa-clipboard-list'></i> Orders", unsafe_allow_html=True)
     st.markdown("---")
     
-    tab1, tab2 = st.tabs(["🛒 New Order (POS)", "📋 Manage Orders"])
+    tab1, tab2 = st.tabs(["New Order (POS)", "Manage Orders"])
     
     # --- POS Tab ---
     with tab1:
-        st.markdown("### Create New Order")
+        st.markdown("### <i class='fa-solid fa-cash-register'></i> Create New Order", unsafe_allow_html=True)
         
         if "current_order_id" not in st.session_state:
             st.session_state["current_order_id"] = None
@@ -551,7 +576,7 @@ def view_orders():
                 with col2:
                     notes = st.text_input("Order Notes (optional)", placeholder="e.g., Birthday celebration")
                 
-                if st.form_submit_button("🚀 Start Order", use_container_width=True):
+                if st.form_submit_button("Start Order", use_container_width=True):
                     if table_num:
                         user_id = st.session_state["current_user"].user_id
                         new_id = services.create_new_order(user_id, table_num, notes)
@@ -563,7 +588,7 @@ def view_orders():
             order_id = st.session_state["current_order_id"]
             order = services.get_order_details(order_id)
             
-            st.info(f"📋 **Order #{order_id}** for **Table: {order.table_number}**")
+            st.info(f"Order #{order_id} for Table: {order.table_number}")
             
             col1, col2 = st.columns([1, 2])
             
@@ -578,19 +603,19 @@ def view_orders():
                 qty = st.number_input("Quantity", min_value=1, value=1)
                 note = st.text_input("Item Note", placeholder="e.g., no sugar")
                 
-                if st.button("➕ Add to Order", use_container_width=True):
+                if st.button("Add to Order", use_container_width=True):
                     services.add_item_to_order(order_id, selected_item.item_id, qty, note)
                     st.rerun()
                 
                 st.markdown("---")
                 
-                if st.button("✅ Send to Kitchen", type="primary", use_container_width=True):
+                if st.button("Send to Kitchen", type="primary", use_container_width=True):
                     services.change_order_status(order_id, "IN_PREP")
                     st.session_state["current_order_id"] = None
                     st.success("Order submitted!")
                     st.rerun()
                     
-                if st.button("❌ Cancel Order", use_container_width=True):
+                if st.button("Cancel Order", use_container_width=True):
                     services.change_order_status(order_id, "CANCELLED")
                     st.session_state["current_order_id"] = None
                     st.rerun()
@@ -609,13 +634,13 @@ def view_orders():
                     st.table(order_data)
                     
                     st.markdown("---")
-                    st.metric("💵 Grand Total", f"${order.total_amount:.2f}")
+                    st.metric("Grand Total", f"${order.total_amount:.2f}")
                 else:
                     st.info("No items added yet. Select items from the menu.")
 
     # --- Manage Orders Tab ---
     with tab2:
-        st.markdown("### Kitchen / Management View")
+        st.markdown("### <i class='fa-solid fa-kitchen-set'></i> Kitchen / Management View", unsafe_allow_html=True)
         
         status_filter = st.selectbox(
             "Filter by Status", 
@@ -629,15 +654,9 @@ def view_orders():
             st.info("No orders found with the selected filter.")
         
         for o in orders:
-            status_emoji = {
-                "PENDING": "⏳",
-                "IN_PREP": "👨‍🍳",
-                "READY": "✅",
-                "SERVED": "🍽️",
-                "CANCELLED": "❌"
-            }.get(o.order_status, "")
+            # Icons for expander headers handled by get_status_badge logic or text here
             
-            with st.expander(f"{status_emoji} Order #{o.order_id} - {o.table_number} | ${o.total_amount:.2f}"):
+            with st.expander(f"Order #{o.order_id} - {o.table_number} | ${o.total_amount:.2f}"):
                 col1, col2, col3 = st.columns(3)
                 col1.markdown(f"**Cashier:** {o.cashier_name}")
                 col2.markdown(f"**Time:** {o.created_at.strftime('%H:%M')}")
@@ -667,29 +686,29 @@ def view_orders():
                     ])
 
 def view_reports():
-    st.markdown("## 📊 Reports & Analytics")
+    st.markdown("## <i class='fa-solid fa-file-invoice-dollar'></i> Reports & Analytics", unsafe_allow_html=True)
     st.markdown("---")
     
     stats = services.get_dashboard_stats()
     
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("💰 Today's Revenue", f"${stats['today_sales']:.2f}")
+        st.metric("Today's Revenue", f"${stats['today_sales']:.2f}")
     with col2:
-        st.metric("🏆 Best Seller Today", stats['top_item'] or "N/A")
+        st.metric("Best Seller Today", stats['top_item'] or "N/A")
     
     st.markdown("---")
-    st.markdown("### 📈 Revenue by Category")
+    st.markdown("### <i class='fa-solid fa-chart-simple'></i> Revenue by Category", unsafe_allow_html=True)
     
     if stats['sales_by_category']:
         df = pd.DataFrame(stats['sales_by_category'], columns=['Category', 'Total Sales'])
         st.bar_chart(df.set_index('Category'), color="#5D4037")
         
         st.markdown("---")
-        st.markdown("### 📋 Detailed Breakdown")
+        st.markdown("### <i class='fa-solid fa-table'></i> Detailed Breakdown", unsafe_allow_html=True)
         st.dataframe(df, use_container_width=True, hide_index=True)
     else:
-        st.info("☕ No sales data available yet.")
+        st.info("No sales data available yet.")
 
 # --- Main App Logic ---
 
@@ -700,7 +719,7 @@ def main():
 
     # Sidebar Navigation with Branding
     with st.sidebar:
-        st.markdown('<div class="coffee-icon">☕</div>', unsafe_allow_html=True)
+        st.markdown('<div class="coffee-icon"><i class="fa-solid fa-mug-hot"></i></div>', unsafe_allow_html=True)
         st.markdown('<div class="sidebar-brand">CMOMS</div>', unsafe_allow_html=True)
         
         user = st.session_state["current_user"]
@@ -709,28 +728,39 @@ def main():
         
         st.markdown("---")
         
-        page = st.radio(
+        # Navigation with Icons
+        # Streamlit's radio doesn't support HTML, so we use mapping
+        nav_options = {
+            "Dashboard": "Dashboard",
+            "Orders": "Orders",
+            "Menu Management": "Menu Management",
+            "Reports": "Reports"
+        }
+        
+        page_selection = st.radio(
             "Navigation",
-            ["📊 Dashboard", "📝 Orders", "🍽️ Menu Management", "📈 Reports"],
+            list(nav_options.keys()),
             label_visibility="collapsed"
         )
         
+        page = nav_options[page_selection]
+        
         st.markdown("---")
         
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True):
             logout()
 
     # Main Content
-    if "Dashboard" in page:
+    if "Dashboard" == page:
         view_dashboard()
-    elif "Orders" in page:
+    elif "Orders" == page:
         view_orders()
-    elif "Menu Management" in page:
+    elif "Menu Management" == page:
         if user.role == "MANAGER":
             view_menu_management()
         else:
-            st.error("🔒 Access Denied: Manager privileges required.")
-    elif "Reports" in page:
+            st.error("Access Denied: Manager privileges required.")
+    elif "Reports" == page:
         view_reports()
 
 if __name__ == "__main__":

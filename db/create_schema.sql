@@ -9,7 +9,7 @@
 CREATE TABLE IF NOT EXISTS Users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL, -- Plain text for this assignment as requested
+    password VARCHAR(100) NOT NULL, 
     role ENUM('MANAGER', 'CASHIER') NOT NULL
 );
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS MenuItems (
     name VARCHAR(100) NOT NULL,
     price DECIMAL(8,2) NOT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
-    FOREIGN KEY (category_id) REFERENCES MenuCategories(category_id)
+    FOREIGN KEY (category_id) REFERENCES MenuCategories(category_id) ON DELETE CASCADE
 );
 
 -- 4. Orders Table
@@ -64,5 +64,5 @@ CREATE TABLE IF NOT EXISTS OrderItems (
     note VARCHAR(255) NOT NULL DEFAULT '',
     line_total DECIMAL(8,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id)
+    FOREIGN KEY (item_id) REFERENCES MenuItems(item_id) ON DELETE CASCADE
 );

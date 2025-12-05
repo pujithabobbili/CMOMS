@@ -383,4 +383,3 @@ def get_sales_by_category() -> List[Tuple[str, float]]:
     finally:
         if conn:
             conn.close()
-

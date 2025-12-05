@@ -23,6 +23,8 @@ def update_category(category_id: int, name: str, display_order: int):
     repo.update_category(category_id, name, display_order)
 
 def delete_category(category_id: int):
+    # This might raise a ValueError if category has items (Foreign Key constraint)
+    # The caller (app.py) should handle this.
     repo.delete_category(category_id)
 
 def get_menu_items(active_only: bool = True) -> List[MenuItem]:
@@ -71,4 +73,3 @@ def get_dashboard_stats() -> dict:
         "top_item": repo.get_top_item_today(),
         "sales_by_category": repo.get_sales_by_category()
     }
-
