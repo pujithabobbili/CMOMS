@@ -1,10 +1,8 @@
 # Final Report Outline: Café Menu and Order Management System
 
-## 1. Title Page
+## 1. Title
 - **Project Title**: Café Menu and Order Management System
-- **Course**: DBMS [Course Code]
 - **Team Members**: Pujitha, Sanya
-- **Date**: Dec 4th, 2025
 
 ## 2. Introduction
 - **Overview**: A web-based POS system for a small café to handle orders, menu management, and sales tracking.
@@ -97,6 +95,6 @@
 - Lessons learned regarding database design and Python integration.
 
 ## Appendices
-- **A. SQL Schema**: (Refer to `db/create_schema.sql`)
-- **B. Sample Queries**: (Refer to `db/sample_queries.sql`)
+- **A. SQL Schema**: Refer to `db/create_schema.sql`
+- **B. Sample Queries**: Refer to `db/sample_queries.sql`
 
